@@ -1,7 +1,8 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, send_from_directory, current_app
 from flask_login import login_required, current_user
-from models import db, Cover, Book, Genre, book_genre_table
+from models import db, Cover, Book, Genre, Comment, book_genre_table
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.sql import func
 from flask_migrate import Migrate
 from auth import bp as auth_bp, init_login_manager
 from tools import ImageSaver
@@ -10,7 +11,7 @@ import os
 app = Flask(__name__)
 # application = app
 
-app.config.from_pyfile('configure.py') # качаем кконфиг
+app.config.from_pyfile('configure.py') # качаем конфиг
 
 db.init_app(app)
 migrate = Migrate(app, db) # соединяем app и базу данных
@@ -31,17 +32,24 @@ def handle_sqlalchemy_error(err):
 
 @app.route('/') # декоратор
 def index():
-    books = db.session.execute(db.select(Book)).scalars()
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    # books = db.session.query(Book).order_by(Book.year.desc()).all()
+    books = db.session.query(Book).order_by(Book.year.desc()).paginate(page=page, per_page=per_page)
     books_with_genres = []
     for book in books:
+        average_rating = db.session.query(func.avg(Comment.rating)).filter(Comment.book_id == book.id).scalar()
+        review_count = db.session.query(func.count(Comment.id)).filter(Comment.book_id == book.id).scalar()
         genres = [genre.name for genre in book.genres]
         books_with_genres.append({
             'id': book.id,
             'title': book.title,
             'year': book.year,
-            'genres': genres
+            'genres': genres,
+            'average_rating': average_rating or 0,
+            'review_count': review_count or 0
         })
-    return render_template('index.html', books=books_with_genres)
+    return render_template('index.html', books=books_with_genres, pagination_book=books)
 
 @app.route('/images/<image_id>')
 def image(image_id):

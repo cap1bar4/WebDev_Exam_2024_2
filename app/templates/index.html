@@ -18,20 +18,43 @@
             <tr>
                 <td>{{ book.title }}</td>
                 <td>{{ book.genres | join(', ') }}</td>
-                <td>{{ book.year }}</td>
-                <td>Средняя оценка пользователей</td>
-                <td>Количество рецензий</td>
-                <td>
+                <td class = "text-center">{{ book.year }}</td>
+                <td class = "text-center">{{ book.average_rating | round(1)}}</td>
+                <td class = "text-center">{{ book.review_count }}</td>
+                <td> 
                     <div class="actions">
-                        <a class="btn btn-primary" href="{{url_for('book.edit_book', book_id = book.id)}}">Посмотреть</a>
-                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-book-id="{{ book.id }}" data-book-title="{{ book.title }}">Удалить</button>
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.can('show',user)%}
+                            <a class="btn btn-outline-info btn-sm m-1" href="{{url_for('book.view_book', book_id=book.id)}}">Просмотр</a>
+                            {% endif%}
+                            {% if current_user.can('edit',user)%}
+                            <a class="btn btn-outline-warning btn-sm m-1" href="{{url_for('book.edit_book', book_id = book.id)}}">Редактировать</a>
+                            {% endif%}
+                            {% if current_user.can('delete',user)%}
+                            <button class="btn btn-outline-danger btn-sm m-1" data-bs-toggle="modal" data-bs-target="#deleteModal" data-book-id="{{ book.id }}" data-book-title="{{ book.title }}">Удалить</button>
+                            {% endif%}
+                        {% endif%}
+                        
                     </div>
                 </td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
+        {% if pagination_book.has_prev %}
+        <a class="btn btn-outline-info btn-sm mb-3 me-2" href="{{ url_for('index', page=pagination_book.prev_num) }}">Назад</a>
+        {% endif%}
+        {% if pagination_book.has_next %}
+        <a class="btn btn-outline-info btn-sm mb-3 me-2" href="{{ url_for('index', page=pagination_book.next_num) }}">Вперед</a>
+        {% endif%}
+
+        {% if current_user.is_authenticated %}
+            {% if current_user.can('create',user)%}
+                <a class="btn btn-outline-primary btn-sm mb-3" href="{{ url_for('book.create_book') }}">Добавить книгу</a>
+            {% endif%}
+        {% endif%}
     </div>
+   
 
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -44,10 +67,10 @@
                     Вы уверены, что хотите удалить книгу <span id="bookTitle"></span>?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Нет</button>
                     <form method="POST" action="{{ url_for('book.delete_book') }}">
                         <input type="hidden" name="book_id" id="bookId">
-                        <button type="submit" class="btn btn-danger">Да</button>
+                        <button type="submit" class="btn btn-outline-danger">Да</button>
                     </form>
                 </div>
             </div>

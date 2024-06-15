@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Написать рецензию на "{{ book.title }}"</h1>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="rating_id" class="form-label">Оценка</label>
+            <select class="form-select" id="rating_id" name="rating" required>
+                <option value="5">отлично</option>
+                <option value="4">хорошо</option>
+                <option value="3">удовлетворительно</option>
+                <option value="2">неудовлетворительно</option>
+                <option value="1">плохо</option>
+                <option value="0">ужасно</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="text_review_id" class="form-label">Текст рецензии</label>
+            <textarea class="form-control" name="text_review" id="text_review_id" autofocus="autofocus" rows="5" required>Ваша рецензия</textarea>
+        </div> 
+        <button type="submit" class="btn btn-outline-primary mb-5">Сохранить</button>
+    </form>
+</div>
+
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+
+<script>
+    var easyMDE = new EasyMDE({ element: document.getElementById('text_review_id') });
+</script>
+
+{% endblock %}

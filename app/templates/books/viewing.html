@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">{{ book.title }}</h1>
+    <div class="row mb-3">
+        <div class="col-md-4">
+            {% if cover %}
+                <img class="img-fluid fixed-size" src="{{ cover.url }}" alt="{{ book.title }} cover">
+            {% else %}
+                <p>Обложка отсутствует</p>
+            {% endif %}
+        </div>
+        <div class="col-md-8">
+            <ul class="list-group">
+                <li class="list-group-item"><strong>Название:</strong> {{ book.title }}</li>
+                <li class="list-group-item"><strong>Описание:</strong> {{ book.description | safe }}</li>
+                <li class="list-group-item"><strong>Год издания:</strong> {{ book.year }}</li>
+                <li class="list-group-item"><strong>Издательство:</strong> {{ book.publisher }}</li>
+                <li class="list-group-item"><strong>Автор:</strong> {{ book.author }}</li>
+                <li class="list-group-item"><strong>Объем страниц:</strong> {{ book.pages }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="comments-section">
+        <h4>Рецензии</h4>
+        {% for comment in comments %}
+        <div class="comment mb-3">
+            <div class="d-flex align-items-start">
+                <div class="flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
+                    </svg>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <div class="fw-bold">{{ comment.user.full_name }}</div>
+                    <div>{{ comment.text | safe }}</div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}   
+    </div>
+    {% if user_review %}
+        <div class="text_review">
+            <h6>Ваша рецензия</h6>
+            <div class="text_review d-flex">
+                <p class=" me-2 mb-0">{{ user_review.rating }}  </p> 
+                <p class=" mb-0">{{ user_review.text | safe }}</p>
+            </div>
+        </div>
+    {% else %}
+        <div class="actions">
+            <a class="btn btn-outline-primary mb-5" href="{{url_for('book.add_view', book_id=book.id)}}">Написать рецензию</a>       
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
