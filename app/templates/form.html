@@ -13,10 +13,12 @@
                 {% endfor %}
             </select>    
         </div>
-        <div>
-            <label for="description">Описание книги (Markdown)</label>
-            <textarea name="short_desc" id="description">{{ book.description | safe }}</textarea>
-        </div>        
+        {% if request.endpoint == "book.create_book" or request.endpoint == "book.edit_book" %}
+            <div>
+                <label for="description">Описание книги (Markdown)</label>
+                <textarea name="short_desc" id="description">{{ book.description | safe }}</textarea>
+            </div>
+        {% endif %}        
         <div class="mb-3">
             <label for="InputYear" class="form-label">Год</label>
             <input type="number" name="year" class="form-control" id="InputYear" value="{{ book.year or '' }}">

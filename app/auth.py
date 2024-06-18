@@ -3,6 +3,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from models import db, User
 from functools import wraps
 import hashlib
+from werkzeug.security import generate_password_hash, check_password_hash
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -38,20 +39,24 @@ def checkRole(action):
 def login():
     if request.method == 'POST':
         username = request.form.get('login')
-        
         password = request.form.get('password')
-        password_hash = hashlib.sha256(password.encode()).hexdigest()
-        print(password_hash)
-        print("i tut")
+        
         if login and password:
-            user = db.session.execute(db.select(User).filter_by(username=username)).scalar()
-            #and user.check_password(password)
+            user = db.session.query(User).filter_by(username=username).first()
+            print(generate_password_hash(password), "1001")
+            print(user.password_hash, "1002")
             if user:
-                login_user(user)
-                flash('Вы успешно аутентифицированы.', 'success')
-                next = request.args.get('next')
-                return redirect(next or url_for('index'))
-        flash('Невозможно аутентифицироваться с указанными логином и паролем.', 'danger')
+                if check_password_hash(user.password_hash, password):
+                    login_user(user)
+                    flash('Вы успешно аутентифицированы.', 'success')
+                    next = request.args.get('next')
+                    return redirect(next or url_for('index'))
+                else:
+                    flash('Невозможно аутентифицироваться с указанными логином и паролем.', 'danger')
+            else:
+                flash('Пользователь не найден.', 'danger')
+                
+       
     return render_template('auth/login.html')
 
 @bp.route('/logout')

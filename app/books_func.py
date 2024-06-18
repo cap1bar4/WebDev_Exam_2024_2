@@ -20,7 +20,7 @@ bp = Blueprint('book', __name__, url_prefix='/book')
 
 @bp.route('/create_book', methods=['GET', 'POST'])
 @login_required
-@checkRole('create') ####
+@checkRole('create') 
 def create_book():
     book = Book()
     genres = db.session.execute(db.select(Genre)).scalars() 
@@ -60,10 +60,11 @@ def create_book():
                 print('File exists, attempting to save')
                 img = ImageSaver(file).save()
                 print('Image saved with id:', img.id)
+                book.cover_id = img.id
             if not img:
                 raise ValueError("Обложка книги обязательна")
             
-            book.cover_id = img.id
+           
             
             db.session.add(book)
             db.session.commit()

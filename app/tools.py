@@ -13,6 +13,12 @@ class ImageSaver:
         file_data = self.file.read()
         
         md5_hash = hashlib.md5(file_data).hexdigest()
+
+        # Проверяем, существует ли изображение с таким же хэшем
+        existing_cover = db.session.query(Cover).filter_by(md5_hash=md5_hash).first()
+        if existing_cover:
+            return existing_cover
+        
         storage_filename = f"{md5_hash}{os.path.splitext(filename)[1]}"
         
         upload_folder = current_app.config['UPLOAD_FOLDER']

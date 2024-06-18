@@ -1,82 +1,119 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <div class="container">
-        <h1>Таблица с книгами</h1>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Название</th>
-                    <th>Жанры</th>
-                    <th>Год</th>
-                    <th>Средняя оценка пользователей</th>
-                    <th>Количество рецензий</th>
-                </tr>
-            </thead>
-            <tbody>
+<div class="container">
+    <h1>Таблица с книгами</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Жанры</th>
+                <th>Год</th>
+                <th>Средняя оценка пользователей</th>
+                <th>Количество рецензий</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
             {% for book in books %}
             <tr>
                 <td>{{ book.title }}</td>
                 <td>{{ book.genres | join(', ') }}</td>
-                <td class = "text-center">{{ book.year }}</td>
-                <td class = "text-center">{{ book.average_rating | round(1)}}</td>
-                <td class = "text-center">{{ book.review_count }}</td>
-                <td> 
+                <td class="text-center">{{ book.year }}</td>
+                <td class="text-center">{{ book.average_rating | round(1) }}</td>
+                <td class="text-center">{{ book.review_count }}</td>
+                <td>
                     <div class="actions">
                         {% if current_user.is_authenticated %}
-                            {% if current_user.can('show',user)%}
-                            <a class="btn btn-outline-info btn-sm m-1" href="{{url_for('book.view_book', book_id=book.id)}}">Просмотр</a>
-                            {% endif%}
-                            {% if current_user.can('edit',user)%}
-                            <a class="btn btn-outline-warning btn-sm m-1" href="{{url_for('book.edit_book', book_id = book.id)}}">Редактировать</a>
-                            {% endif%}
-                            {% if current_user.can('delete',user)%}
+                            {% if current_user.can('show', user) %}
+                            <a class="btn btn-outline-info btn-sm m-1" href="{{ url_for('book.view_book', book_id=book.id) }}">Просмотр</a>
+                            {% endif %}
+                            {% if current_user.can('edit', user) %}
+                            <a class="btn btn-outline-warning btn-sm m-1" href="{{ url_for('book.edit_book', book_id=book.id) }}">Редактировать</a>
+                            {% endif %}
+                            {% if current_user.can('delete', user) %}
                             <button class="btn btn-outline-danger btn-sm m-1" data-bs-toggle="modal" data-bs-target="#deleteModal" data-book-id="{{ book.id }}" data-book-title="{{ book.title }}">Удалить</button>
-                            {% endif%}
-                        {% endif%}
-                        
+                            {% endif %}
+                        {% endif %}
                     </div>
                 </td>
             </tr>
             {% endfor %}
-            </tbody>
-        </table>
+        </tbody>
+    </table>
+
+    <div class="pagination">
         {% if pagination_book.has_prev %}
         <a class="btn btn-outline-info btn-sm mb-3 me-2" href="{{ url_for('index', page=pagination_book.prev_num) }}">Назад</a>
         {% endif%}
         {% if pagination_book.has_next %}
         <a class="btn btn-outline-info btn-sm mb-3 me-2" href="{{ url_for('index', page=pagination_book.next_num) }}">Вперед</a>
         {% endif%}
-
-        {% if current_user.is_authenticated %}
-            {% if current_user.can('create',user)%}
-                <a class="btn btn-outline-primary btn-sm mb-3" href="{{ url_for('book.create_book') }}">Добавить книгу</a>
-            {% endif%}
-        {% endif%}
     </div>
-   
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Удаление книги</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Вы уверены, что хотите удалить книгу <span id="bookTitle"></span>?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Нет</button>
-                    <form method="POST" action="{{ url_for('book.delete_book') }}">
-                        <input type="hidden" name="book_id" id="bookId">
-                        <button type="submit" class="btn btn-outline-danger">Да</button>
-                    </form>
-                </div>
+    {% if current_user.is_authenticated %}
+        {% if current_user.can('create',user)%}
+            <a class="btn btn-outline-primary btn-sm mb-3" href="{{ url_for('book.create_book') }}">Добавить книгу</a>
+        {% endif%}
+    {% endif%}
+
+    <h1>Поиск</h1>
+    <form method="POST">
+        <div class="form-group col-md-6">
+            <label class="sr-only" for="inlineFormInputTitle">Название книги</label>
+            <input type="text" class="form-control mb-2" name="name" id="inlineFormInputTitle" placeholder="Война и мир" value="{{ request.form.name }}">
+        </div>
+        <div class="form-group col-md-6 my-3">
+            <select name="genres" id="genres" multiple class="form-control">
+                {% for genre in genres_arr %}
+                <option value="{{ genre }}" {% if genre in request.form.getlist('genres') %}selected{% endif %}>{{ genre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col-md-6 my-3">
+            <select name="year" id="years" multiple class="form-control">
+                {% for year in year_arr %}
+                <option value="{{ year }}" {% if year in request.form.getlist('year') %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col-md-6">
+            <label class="sr-only" for="inlineFormInputPages">Объем</label>
+            <input type="text" class="form-control mb-2" name="pages" id="inlineFormInputPages" placeholder="500" value="{{ request.form.pages }}">
+        </div>
+        <div class="form-group col-md-6">
+            <label class="sr-only" for="inlineFormInputAuthor">Автор</label>
+            <input type="text" class="form-control mb-2" name="author" id="inlineFormInputAuthor" placeholder="Лев Толстой" value="{{ request.form.author }}">
+        </div>
+        <div class="form-group col-md-6">
+            <label class="sr-only" for="inlineFormInputPublisher">Издательство</label>
+            <input type="text" class="form-control mb-2" name="publisher" id="inlineFormInputPublisher" placeholder="Издательство" value="{{ request.form.publisher }}">
+        </div>
+        <button type="submit" class="btn btn-outline-primary my-4">Найти</button>
+    </form>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Удаление книги</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить книгу <span id="bookTitle"></span>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Нет</button>
+                <form method="POST" action="{{ url_for('book.delete_book') }}">
+                    <input type="hidden" name="book_id" id="bookId">
+                    <button type="submit" class="btn btn-outline-danger">Да</button>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="{{ url_for('static', filename='deleteBook.js') }}"></script>
+<script src="{{ url_for('static', filename='deleteBook.js') }}"></script>
 
 {% endblock %}
