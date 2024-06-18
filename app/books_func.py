@@ -94,7 +94,6 @@ def view_book(book_id):
     
     comments = db.session.query(Comment).filter_by(book_id=book_id).all()
 
-
     return render_template('books/viewing.html', book=book, comments=comments, cover=cover,  user_review=user_review)
 
 @bp.route('/add_view/<int:book_id>',  methods=['GET', 'POST'])

@@ -43,52 +43,68 @@
     </table>
 
     <div class="pagination">
+        {% set args = request.args.to_dict() %}
         {% if pagination_book.has_prev %}
-        <a class="btn btn-outline-info btn-sm mb-3 me-2" href="{{ url_for('index', page=pagination_book.prev_num) }}">Назад</a>
-        {% endif%}
+            {% set prev_args = args.copy() %}
+            {% set _ = prev_args.update({'page': pagination_book.prev_num}) %}
+            <a class="btn btn-outline-info btn-sm mb-3 me-2" href="{{ url_for('index', **prev_args) }}">Назад</a>
+        {% endif %}
         {% if pagination_book.has_next %}
-        <a class="btn btn-outline-info btn-sm mb-3 me-2" href="{{ url_for('index', page=pagination_book.next_num) }}">Вперед</a>
-        {% endif%}
+            {% set next_args = args.copy() %}
+            {% set _ = next_args.update({'page': pagination_book.next_num}) %}
+            <a class="btn btn-outline-info btn-sm mb-3 me-2" href="{{ url_for('index', **next_args) }}">Вперед</a>
+        {% endif %}
     </div>
-
-    {% if current_user.is_authenticated %}
+{% if current_user.is_authenticated %}
         {% if current_user.can('create',user)%}
             <a class="btn btn-outline-primary btn-sm mb-3" href="{{ url_for('book.create_book') }}">Добавить книгу</a>
         {% endif%}
     {% endif%}
-
-    <h1>Поиск</h1>
+<h1>Поиск</h1>
     <form method="POST">
-        <div class="form-group col-md-6">
-            <label class="sr-only" for="inlineFormInputTitle">Название книги</label>
-            <input type="text" class="form-control mb-2" name="name" id="inlineFormInputTitle" placeholder="Война и мир" value="{{ request.form.name }}">
+        <div class="row">
+            <div class="form-group col-12">
+                <label class="sr-only" for="inlineFormInputTitle">Название книги</label>
+                <input type="text" class="form-control mb-2" name="name" id="inlineFormInputTitle" placeholder="Война и мир" value="{{ request.form.name }}">
+            </div>
+            <div class="form-group col my-3">
+                <label class="sr-only" for="inlineFormInputTitle">Жанр</label>
+                <select name="genres" id="genres" multiple class="form-control">
+                    {% for genre in genres_arr %}
+                    <option value="{{ genre }}" {% if genre in request.form.getlist('genres') %}selected{% endif %}>{{ genre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group col my-3">
+                <label class="sr-only" for="inlineFormInputTitle">Год издания</label>
+                <select name="year" id="years" multiple class="form-control">
+                    {% for year in year_arr %}
+                    <option value="{{ year }}" {% if year in request.form.getlist('year') %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
-        <div class="form-group col-md-6 my-3">
-            <select name="genres" id="genres" multiple class="form-control">
-                {% for genre in genres_arr %}
-                <option value="{{ genre }}" {% if genre in request.form.getlist('genres') %}selected{% endif %}>{{ genre }}</option>
-                {% endfor %}
-            </select>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label class="sr-only" for="inlineFormInputPages1">Объем страниц</label>
+                <input type="number" class="form-control col mb-2" name="pages_one" id="inlineFormInputPages1" placeholder="от" value="{{ request.form.pages_one }}">
+            </div>
+            <div class="form-group col-md-6">
+                <label class="sr-only" for="inlineFormInputPages2"></label>
+                <input type="number" class="form-control col mb-2" name="pages_two" id="inlineFormInputPages2" placeholder="до" value="{{ request.form.pages_two }}">
+            </div>
         </div>
-        <div class="form-group col-md-6 my-3">
-            <select name="year" id="years" multiple class="form-control">
-                {% for year in year_arr %}
-                <option value="{{ year }}" {% if year in request.form.getlist('year') %}selected{% endif %}>{{ year }}</option>
-                {% endfor %}
-            </select>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label class="sr-only" for="inlineFormInputAuthor">Автор</label>
+                <input type="text" class="form-control mb-2" name="author" id="inlineFormInputAuthor" placeholder="Лев Толстой" value="{{ request.form.author }}">
+            </div>
+            <div class="form-group col-md-6">
+                <label class="sr-only" for="inlineFormInputPublisher">Издательство</label>
+                <input type="text" class="form-control mb-2" name="publisher" id="inlineFormInputPublisher" placeholder="Издательство" value="{{ request.form.publisher }}">
+            </div>
         </div>
-        <div class="form-group col-md-6">
-            <label class="sr-only" for="inlineFormInputPages">Объем</label>
-            <input type="text" class="form-control mb-2" name="pages" id="inlineFormInputPages" placeholder="500" value="{{ request.form.pages }}">
-        </div>
-        <div class="form-group col-md-6">
-            <label class="sr-only" for="inlineFormInputAuthor">Автор</label>
-            <input type="text" class="form-control mb-2" name="author" id="inlineFormInputAuthor" placeholder="Лев Толстой" value="{{ request.form.author }}">
-        </div>
-        <div class="form-group col-md-6">
-            <label class="sr-only" for="inlineFormInputPublisher">Издательство</label>
-            <input type="text" class="form-control mb-2" name="publisher" id="inlineFormInputPublisher" placeholder="Издательство" value="{{ request.form.publisher }}">
-        </div>
+        
         <button type="submit" class="btn btn-outline-primary my-4">Найти</button>
     </form>
 </div>
@@ -113,7 +129,6 @@
         </div>
     </div>
 </div>
-
 <script src="{{ url_for('static', filename='deleteBook.js') }}"></script>
 
 {% endblock %}

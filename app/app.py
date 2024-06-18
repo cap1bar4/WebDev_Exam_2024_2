@@ -5,7 +5,8 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.sql import func
 from flask_migrate import Migrate
 from auth import bp as auth_bp, init_login_manager
-from tools import ImageSaver
+from tools import ImageSaver 
+from sqlalchemy import and_
 import os
 
 app = Flask(__name__)
@@ -45,7 +46,7 @@ def index():
         title = request.form.get('name')
         if title:
             books_query = books_query.filter(Book.title.ilike(f"%{title}%"))
-        
+
         yearlist = request.form.getlist('year')
         if yearlist:
             books_query = books_query.filter(Book.year.in_(yearlist))
@@ -58,10 +59,16 @@ def index():
         if author:
             books_query = books_query.filter(Book.author.ilike(f"%{author}%"))
         
-        pages = request.form.get('pages')
-        if pages:
-            books_query = books_query.filter(Book.pages == pages)
-        
+        pages_one = request.form.get('pages_one')
+        pages_two = request.form.get('pages_two')
+        print(pages_one, pages_two, "Errrrrrrrr")
+        if pages_one and pages_two:
+            books_query = books_query.filter(and_(Book.pages >= pages_one, Book.pages <= pages_two))
+        elif pages_one:
+            books_query = books_query.filter(Book.pages >= pages_one)
+        elif pages_two:
+            books_query = books_query.filter(Book.pages <= pages_two)
+
         genrelist = request.form.getlist('genres')
         if genrelist:
             genre_ids = db.session.query(Genre.id).filter(Genre.name.in_(genrelist)).all()
